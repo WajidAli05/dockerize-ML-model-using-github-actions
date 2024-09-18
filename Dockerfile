@@ -4,7 +4,10 @@ WORKDIR /app
 
 COPY . .
 
-# Install dependencies
+# Install build dependencies
+RUN apk add --no-cache gcc musl-dev libffi-dev g++ make python3-dev
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Run the model loading script
