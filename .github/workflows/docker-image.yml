@@ -32,7 +32,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/house-price-predictor:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/house-price-predictor:latest
 
   run_container:
     needs: build
@@ -41,8 +41,8 @@ jobs:
     steps:
       # Pull the Docker image from Docker Hub
       - name: Pull Docker image
-        run: docker pull ${{ secrets.DOCKER_USERNAME }}/house-price-predictor:latest
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/house-price-predictor:latest
 
       # Run the Docker container
       - name: Run Docker container
-        run: docker run -d -p 5000:5000 ${{ secrets.DOCKER_USERNAME }}/house-price-predictor:latest
+        run: docker run -d -p 5000:5000 ${{ secrets.DOCKERHUB_USERNAME }}/house-price-predictor:latest
