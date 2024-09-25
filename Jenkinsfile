@@ -2,22 +2,22 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // Make sure the credentials ID is correct
     }
 
     stages {
         stage('Checkout repository') {
             steps {
-                checkout scm
+                checkout scm  // Pulls the latest code from GitHub
             }
         }
 
         stage('Set up Docker Buildx') {
             steps {
                 sh '''
-                    # Install Docker Buildx plugin
-                    docker buildx install
-                    docker buildx create --use
+                    # Only install Buildx if it's not already installed
+                    docker buildx version || docker buildx install
+                    docker buildx create --use || echo "Buildx already configured"
                 '''
             }
         }
@@ -33,7 +33,9 @@ pipeline {
         stage('Build and push Docker image') {
             steps {
                 sh '''
-                    docker buildx build --push --file Dockerfile --tag $DOCKERHUB_CREDENTIALS_USR/house-price-predictor:latest .
+                    docker buildx build --platform linux/amd64,linux/arm64 \
+                    --push --file Dockerfile \
+                    --tag $DOCKERHUB_CREDENTIALS_USR/house-price-predictor:latest .
                 '''
             }
         }
@@ -50,7 +52,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            cleanWs()  // Cleans up the workspace after each run
         }
     }
 }
