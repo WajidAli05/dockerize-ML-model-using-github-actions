@@ -22,7 +22,9 @@ pipeline {
                     usernameVariable: 'DOCKERHUB_CREDENTIALS_USR',
                     passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW']]) {
                     
-                    // Increase the timeout for this command
+                    // Echo for debugging
+                    bat "echo Username: %DOCKERHUB_CREDENTIALS_USR%"
+                    
                     timeout(time: 5, unit: 'MINUTES') {
                         bat "echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin"
                     }
