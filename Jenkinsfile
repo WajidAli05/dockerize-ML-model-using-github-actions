@@ -8,6 +8,17 @@ pipeline {
             }
         }
         
+        stage('Debug Docker') {
+            steps {
+                bat 'docker --version'
+                bat 'docker info'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat 'echo Docker User: %DOCKER_USER%'
+                    // Do not echo the password
+                }
+            }
+        }
+        
         stage('Set up Docker Buildx') {
             steps {
                 bat 'docker buildx install'
@@ -26,8 +37,10 @@ pipeline {
         stage('Build and push Docker image') {
             steps {
                 script {
-                    bat 'docker build -t wajidali05/my-app:latest .'
-                    bat 'docker push wajidali05/my-app:latest'
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        bat 'docker build -t %DOCKER_USER%/my-app:latest .'
+                        bat 'docker push %DOCKER_USER%/my-app:latest'
+                    }
                 }
             }
         }
@@ -35,8 +48,10 @@ pipeline {
         stage('Pull and run Docker container') {
             steps {
                 script {
-                    bat 'docker pull wajidali05/my-app:latest'
-                    bat 'docker run -d -p 8080:80 wajidali05/my-app:latest'
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        bat 'docker pull %DOCKER_USER%/my-app:latest'
+                        bat 'docker run -d -p 8080:80 %DOCKER_USER%/my-app:latest'
+                    }
                 }
             }
         }
