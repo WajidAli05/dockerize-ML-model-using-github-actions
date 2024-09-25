@@ -14,7 +14,6 @@ pipeline {
                 bat 'docker info'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat 'echo Docker User: %DOCKER_USER%'
-                    bat 'echo Docker password: %DOCKER_PASS%'
                     // Do not echo the password
                 }
             }
@@ -30,7 +29,14 @@ pipeline {
         stage('Log in to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat 'echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin'
+                    bat '''
+                        echo Attempting to log in to Docker Hub
+                        docker login -u %DOCKER_USER% --password %DOCKER_PASS%
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo Docker login failed
+                            exit /b 1
+                        )
+                    '''
                 }
             }
         }
