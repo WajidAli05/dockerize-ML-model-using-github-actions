@@ -36,15 +36,9 @@ pipeline {
         stage('Log in to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat 'echo Attempting to log in as %DOCKER_USER%'
-                    bat 'echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin'
                     bat '''
-                        if %ERRORLEVEL% NEQ 0 (
-                            echo Docker login failed
-                            exit /b 1
-                        ) else (
-                            echo Docker login successful
-                        )
+                        echo Attempting to log in as %DOCKER_USER%
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin || (echo Docker login failed && exit /b 1)
                     '''
                 }
             }
@@ -55,7 +49,7 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         bat 'docker build -t %DOCKER_USER%/my-app:latest .'
-                        bat 'docker push %DOCKER_USER%/my-app:latest'
+                        bat 'docker push %DOCKER_USER%/my-app:latest || (echo Docker push failed && exit /b 1)'
                     }
                 }
             }
@@ -66,7 +60,7 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         bat 'docker pull %DOCKER_USER%/my-app:latest'
-                        bat 'docker run -d -p 8080:80 %DOCKER_USER%/my-app:latest'
+                        bat 'docker run -d -p 8080:80 %DOCKER_USER%/my-app:latest || (echo Docker run failed && exit /b 1)'
                     }
                 }
             }
@@ -75,7 +69,7 @@ pipeline {
     
     post {
         always {
-            bat 'docker logout'
+            bat 'docker logout || echo "No previous session to log out from."'
             cleanWs()
         }
         success {
